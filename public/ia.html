@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cours vers LaTeX — génération IA directe</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>Cours vers LaTeX — génération IA directe</h1>
+  <p>Dépose un cours (PowerPoint, Word ou PDF) : l'IA rédige directement un document LaTeX complet, restructuré, avec les formules en vraies mathématiques et les schémas décrits en texte — sur le modèle d'un cours de référence relu et validé.</p>
+  <p><a href="index.html" style="color:white">← Revenir au mode avec relecture manuelle des descriptions</a></p>
+</header>
+
+<main id="main">
+
+  <section id="etape-upload" class="etape">
+    <h2>1. Déposer le cours</h2>
+    <form id="form-upload">
+      <label for="fichier-cours">Fichier du cours (.pptx, .docx ou .pdf)</label>
+      <input type="file" id="fichier-cours" name="cours" accept=".pptx,.docx,.pdf" required />
+      <button type="submit" id="btn-analyser">Générer le document LaTeX</button>
+    </form>
+    <p id="erreur-upload" class="erreur" role="alert"></p>
+  </section>
+
+  <section id="etape-chargement" class="etape" hidden aria-live="polite">
+    <h2>Génération en cours…</h2>
+    <p>L'IA lit l'intégralité du cours (texte et schémas) et rédige le document LaTeX en une seule fois. Pour un cours de plusieurs dizaines de pages, cela peut prendre plusieurs minutes.</p>
+    <div class="spinner" aria-hidden="true"></div>
+  </section>
+
+  <section id="etape-resultat" class="etape" hidden>
+    <h2>2. Résultat</h2>
+    <p id="message-compilation"></p>
+    <ul id="liens-telechargement"></ul>
+
+    <label for="apercu-tex">Aperçu du document généré (modifiable avant téléchargement — utilisez le bouton ci-dessus pour la version enregistrée sur le serveur)</label>
+    <textarea id="apercu-tex" rows="24" style="font-family: monospace; font-size: 0.9rem;"></textarea>
+
+    <button type="button" id="btn-recommencer">Traiter un autre cours</button>
+  </section>
+
+  <section id="etape-erreur" class="etape" hidden>
+    <h2>Échec de la génération</h2>
+    <p id="message-erreur" class="erreur" role="alert"></p>
+    <button type="button" id="btn-recommencer-erreur">Réessayer</button>
+  </section>
+
+</main>
+
+<script src="ia.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cours accessible — génération LaTeX</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="app-header">
+  <h1>Cours accessible</h1>
+  <p>Convertit un support de cours (PowerPoint, Word ou PDF) en document LaTeX avec description textuelle des schémas, pour une lecture au lecteur d'écran.</p>
+  <p><a href="ia.html" style="color:white">→ Essayer la génération IA directe (restructuration + formules + descriptions en un seul appel)</a></p>
+</header>
+
+<main id="main">
+
+  <section id="etape-upload" class="etape">
+    <h2>1. Déposer le cours</h2>
+    <form id="form-upload">
+      <label for="fichier-cours">Fichier du cours (.pptx, .docx ou .pdf)</label>
+      <input type="file" id="fichier-cours" name="cours" accept=".pptx,.docx,.pdf" required />
+      <button type="submit" id="btn-analyser">Analyser le cours</button>
+    </form>
+    <p id="etat-ia" class="note" aria-live="polite"></p>
+    <p id="erreur-upload" class="erreur" role="alert"></p>
+  </section>
+
+  <section id="etape-chargement" class="etape" hidden aria-live="polite">
+    <h2>Analyse en cours…</h2>
+    <p>Extraction du texte et des schémas, puis génération des descriptions par IA si une clé API est configurée. Cela peut prendre une à deux minutes selon le nombre d'images.</p>
+    <div class="spinner" aria-hidden="true"></div>
+  </section>
+
+  <section id="etape-relecture" class="etape" hidden>
+    <h2>2. Relire et compléter les descriptions</h2>
+    <label for="titre-doc">Titre du document</label>
+    <input type="text" id="titre-doc" />
+
+    <div id="liste-sections"></div>
+
+    <button type="button" id="btn-generer">Générer le document LaTeX</button>
+    <p id="erreur-generation" class="erreur" role="alert"></p>
+  </section>
+
+  <section id="etape-telechargement" class="etape" hidden>
+    <h2>3. Télécharger</h2>
+    <p id="message-compilation"></p>
+    <ul id="liens-telechargement"></ul>
+    <button type="button" id="btn-recommencer">Traiter un autre cours</button>
+  </section>
+
+</main>
+
+<template id="tpl-section">
+  <fieldset class="section-cours">
+    <legend>
+      <label>Titre de la section
+        <input type="text" class="section-heading" />
+      </label>
+    </legend>
+    <label>Texte de la section
+      <textarea class="section-paragraphes" rows="4"></textarea>
+    </label>
+    <div class="section-images"></div>
+  </fieldset>
+</template>
+
+<template id="tpl-image">
+  <div class="bloc-image">
+    <img class="image-apercu" alt="Aperçu du schéma en cours de relecture" />
+    <label>Description accessible du schéma
+      <textarea class="image-description" rows="5"></textarea>
+    </label>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
