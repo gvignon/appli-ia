@@ -16,6 +16,7 @@ const { describeImages } = require("./lib/describeImages");
 const { buildLatex } = require("./lib/buildLatex");
 const { buildHtml } = require("./lib/buildHtml");
 const { generateLatexAI, wrapDocument } = require("./lib/generateLatexAI");
+const { normalizerTexteCours } = require("./lib/textNormalize");
 
 function mimeType(filename) {
   const ext = path.extname(filename).toLowerCase();
@@ -118,10 +119,16 @@ function normalizePdf(data, sourceTitle) {
 // Extraction + normalisation commune aux deux modes de generation
 // (relecture manuelle et generation IA directe).
 async function extraireEtNormaliser(buffer, ext, sourceTitle) {
-  if (ext === ".pptx") return normalizePptx(extractPptx(buffer), sourceTitle);
-  if (ext === ".docx") return normalizeDocx(extractDocx(buffer), sourceTitle);
-  if (ext === ".pdf") return normalizePdf(await extractPdf(buffer), sourceTitle);
-  return null;
+  let normalized;
+  if (ext === ".pptx") normalized = normalizePptx(extractPptx(buffer), sourceTitle);
+  else if (ext === ".docx") normalized = normalizeDocx(extractDocx(buffer), sourceTitle);
+  else if (ext === ".pdf") normalized = normalizePdf(await extractPdf(buffer), sourceTitle);
+  else return null;
+
+  // Neutralise les variables mathematiques Unicode stylisees (𝑎, 𝔹, 𝜆...)
+  // que peu de polices affichent correctement (carres a l'ecran/au PDF) --
+  // ne touche pas les images/buffers, seulement le texte (heading/paragraphs).
+  return normalizerTexteCours(normalized);
 }
 
 // Tente de compiler document.tex en PDF si un moteur LaTeX est present sur
