@@ -1,21 +1,8 @@
 # Cours accessible — cours → LaTeX/HTML décrit
 
-Application web qui transforme un support de cours (`.pptx`, `.docx` ou `.pdf`) en document LaTeX et HTML accessibles : chaque schéma/image est accompagné d'une description textuelle (générée par IA, puis relue et corrigée par l'enseignant), lisible au lecteur d'écran par l'étudiante malvoyante.
+Application web locale qui transforme un support de cours (`.pptx`, `.docx` ou `.pdf`) en document LaTeX et HTML accessibles : chaque schéma/image est accompagné d'une description textuelle (générée par IA, puis relue et corrigée par l'enseignant), lisible au lecteur d'écran par l'étudiante malvoyante.
 
-## Déploiement en ligne (Render, via GitHub)
-
-1. Poussez ce dépôt sur GitHub (idéalement en **privé** : personne d'autre que vous n'a besoin d'y accéder, et il n'y a aucune protection par mot de passe sur l'appli elle-même — seul le lien la protège).
-2. Sur [render.com](https://render.com), créez un compte gratuit, puis **New > Blueprint** et sélectionnez ce dépôt (le fichier `render.yaml` à la racine configure le service automatiquement).
-3. Render vous demandera de renseigner les variables d'environnement laissées vides dans `render.yaml` : au minimum `IA_PROVIDER` (`mistral` ou `anthropic`) et la clé API correspondante (`MISTRAL_API_KEY` ou `ANTHROPIC_API_KEY`). **Ne mettez jamais ces valeurs dans le code ou dans `render.yaml`** — uniquement dans le formulaire Render.
-4. Déployez. Render construit et démarre l'appli, puis fournit une URL du type `https://cours-accessible-xxxx.onrender.com`.
-
-**Limites à connaître pour ce déploiement :**
-- **Pas de mot de passe** : toute personne avec le lien peut utiliser l'appli, donc consommer votre crédit API. Ne partagez le lien qu'avec les personnes concernées.
-- **Stockage éphémère (plan gratuit)** : les fichiers générés (`output/<session>/`) sont perdus à chaque redémarrage du service (veille après inactivité sur le plan gratuit, ou redéploiement). Un lien de téléchargement obtenu à un instant T n'est donc pas garanti fonctionner indéfiniment — téléchargez/transmettez les fichiers rapidement après génération plutôt que de compter sur le lien à long terme.
-- **Pas de compilateur LaTeX** sur l'image Render par défaut : comme en local, seul `document.html` est garanti utilisable directement ; `document.tex` nécessite Overleaf ou l'installation d'un moteur LaTeX dans l'image (non fait par défaut).
-- **Démarrage à froid** : sur le plan gratuit, le service s'endort après une période d'inactivité et met quelques dizaines de secondes à redémarrer au premier accès suivant.
-
-## Installation (en local)
+## Installation
 
 ```bash
 cd accessibilite-app
@@ -23,18 +10,26 @@ npm install
 cp .env.example .env
 ```
 
-Ouvrez `.env` et renseignez **une** des deux clés API (pas besoin des deux) :
+Ouvrez `.env` et renseignez **une** des clés API (pas besoin de toutes les remplir) :
 - `ANTHROPIC_API_KEY` (clé obtenue sur [console.anthropic.com](https://console.anthropic.com)), ou
-- `MISTRAL_API_KEY` (clé obtenue sur [console.mistral.ai](https://console.mistral.ai)) -- alternative testée et fonctionnelle, utile si le compte Anthropic n'a pas de crédit.
+- `MISTRAL_API_KEY` (clé obtenue sur [console.mistral.ai](https://console.mistral.ai)), ou
+- `GEMINI_API_KEY` (clé obtenue gratuitement sur [aistudio.google.com](https://aistudio.google.com) -- **niveau gratuit sans carte bancaire**, le plus simple pour demarrer ; attention a ne pas confondre avec un abonnement Gemini/Gemini Advanced personnel payant, qui est un produit different et non utilisable ici).
 
-L'appli choisit automatiquement le fournisseur selon la clé presente (Anthropic prioritaire si les deux sont renseignées) ; forcez `IA_PROVIDER=mistral` ou `IA_PROVIDER=anthropic` dans `.env` pour choisir explicitement. Sans aucune clé, l'application fonctionne quand même : les champs de description restent à remplir à la main dans l'étape de relecture.
+L'appli choisit automatiquement le fournisseur selon la clé presente (ordre de priorité : Anthropic, puis Mistral, puis Gemini) ; forcez `IA_PROVIDER=anthropic|mistral|gemini` dans `.env` pour choisir explicitement. Sans aucune clé, l'application fonctionne quand même : les champs de description restent à remplir à la main dans l'étape de relecture.
 
-**Retour d'expérience Mistral (testé en conditions réelles) :**
+**Retour d'expérience par fournisseur (testé en conditions réelles) :**
+
+*Mistral*
 - Modèle vision à utiliser : `mistral-medium-latest` (le nom `pixtral-large-latest` qu'on pourrait attendre n'existe plus/pas dans l'API -- vérifié via `GET /v1/models`, qui expose un champ `capabilities.vision` par modèle).
 - **Mode principal (relecture, un appel par image)** : fonctionne bien, 0 échec sur un test de 35 images, descriptions de bonne qualité en français.
 - **Mode génération IA directe (`ia.html`, un seul appel pour tout le cours)** : deux limites reelles constatées --
   1. L'API Mistral plafonne à **8 images par requête** (contre une centaine chez Anthropic) ; un cours avec plus de schémas déclenche une erreur explicite (gérée proprement, cf. `lib/generateLatexAI.js`).
   2. Sur un test réduit (2 images, sous la limite), Mistral a produit un texte bien restructuré mais **n'a décrit aucun des deux schémas** -- alors que la même image, décrite isolément via le mode principal, donnait une bonne description. Le modèle semble sous-prioriser les images quand elles sont noyées dans beaucoup de texte en un seul message. Comportement non constaté avec Anthropic (non testé en conditions réelles faute de crédit au moment de l'écriture). À surveiller/relire systématiquement si vous utilisez ce mode avec Mistral.
+- Les clés Mistral peuvent avoir une **date d'expiration** (30/90 jours selon le choix fait à la création) et un **plafond de dépense mensuel** configurable sur [admin.mistral.ai/subscription](https://admin.mistral.ai/subscription) -- une clé qui « arrêtait de marcher » a été tracée jusque-là deux fois pendant le développement. Vérifiez ces deux points si les descriptions cessent de fonctionner.
+
+*Gemini*
+- Modèle par défaut : `gemini-flash-lite-latest` (alias toujours à jour, comme `mistral-medium-latest`/`claude-sonnet-5`). **Ne pas utiliser `gemini-2.0-flash`** ni le modèle "Flash" standard (`gemini-flash-latest`/`gemini-3.8-flash`) : testés, tous deux obsolètes ou trop strictement limités en niveau gratuit (5 requêtes/minute seulement pour Flash, contre ~9-10/min pour Flash-Lite dans nos tests).
+- Même avec Flash-Lite, le niveau gratuit reste limité en requêtes/minute : `lib/geminiClient.js` relit le délai suggéré par Google dans les erreurs 429/503 et reessaie automatiquement (jusqu'à 4 tentatives), et `describeImages.js` traite les images **une par une** pour Gemini (pas en parallèle) plutôt que d'empiler les erreurs de quota. Résultat testé : 35/35 descriptions réussies, mais ~2min pour un cours de 35 schémas (contre quelques secondes avec Anthropic/Mistral) -- normal pour un niveau gratuit, à anticiper sur un gros cours.
 
 ## Lancement
 
