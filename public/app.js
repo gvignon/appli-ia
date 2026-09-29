@@ -123,9 +123,9 @@
       liensTelechargement.innerHTML = "";
 
       const liens = [
-        { url: data.telechargementHtml, label: "Télécharger la version HTML accessible (à donner directement à l'étudiante)" },
-        { url: data.telechargementTex, label: "Télécharger le fichier LaTeX (.tex)" },
+        { url: data.telechargementTex, label: "Télécharger le fichier LaTeX (.tex) — à donner directement à l'étudiante" },
         data.telechargementPdf ? { url: data.telechargementPdf, label: "Télécharger le PDF compilé" } : null,
+        { url: data.telechargementHtml, label: "Télécharger la version HTML accessible (alternative sans compilation, utilisable dans un navigateur)" },
         { url: data.telechargementZip, label: "Télécharger l'archive complète (.tex + .html + images)" },
       ].filter(Boolean);
 
