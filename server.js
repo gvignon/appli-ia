@@ -50,7 +50,10 @@ const API_KEY = CLES_PAR_FOURNISSEUR[IA_PROVIDER] || "";
 const MODEL = MODELES_PAR_DEFAUT[IA_PROVIDER] || MODELES_PAR_DEFAUT.anthropic;
 
 const OUTPUT_DIR = path.join(__dirname, "output");
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200 * 1024 * 1024 } });
+// Taille maximale d'un cours envoye (en Mo). Le fichier est traite en memoire :
+// une limite trop haute fait depasser la memoire de l'hebergement.
+const TAILLE_MAX_MO = Number(process.env.TAILLE_MAX_MO) || 50;
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: TAILLE_MAX_MO * 1024 * 1024 } });
 
 const app = express();
 app.use(express.json({ limit: "20mb" }));
@@ -377,6 +380,17 @@ app.post("/api/generer-latex-ia", upload.single("cours"), async (req, res) => {
     console.error(err);
     res.status(500).json({ erreur: err.message });
   }
+});
+
+// Fichier trop volumineux (limite multer) : message clair plutot qu'une
+// erreur 500 generique.
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+    return res.status(413).json({
+      erreur: `Fichier trop volumineux : la taille maximale est de ${TAILLE_MAX_MO} Mo. Reduisez le fichier ou decoupez le cours en plusieurs parties.`,
+    });
+  }
+  next(err);
 });
 
 app.listen(PORT, () => {
