@@ -31,19 +31,34 @@ const PORT = process.env.PORT || 3000;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "";
 const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || "";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
+const ILAAS_API_KEY = process.env.ILAAS_API_KEY || "";
 
 // Fournisseur IA a utiliser : force par IA_PROVIDER si defini, sinon
 // determine automatiquement selon la cle presente (Anthropic prioritaire,
-// puis Mistral, puis Gemini, si plusieurs sont renseignees).
+// puis Mistral, puis Gemini, puis ILaaS, si plusieurs sont renseignees).
 const IA_PROVIDER =
   (process.env.IA_PROVIDER || "").toLowerCase() ||
-  (ANTHROPIC_API_KEY ? "anthropic" : MISTRAL_API_KEY ? "mistral" : GEMINI_API_KEY ? "gemini" : "");
+  (ANTHROPIC_API_KEY
+    ? "anthropic"
+    : MISTRAL_API_KEY
+      ? "mistral"
+      : GEMINI_API_KEY
+        ? "gemini"
+        : ILAAS_API_KEY
+          ? "ilaas"
+          : "");
 
-const CLES_PAR_FOURNISSEUR = { anthropic: ANTHROPIC_API_KEY, mistral: MISTRAL_API_KEY, gemini: GEMINI_API_KEY };
+const CLES_PAR_FOURNISSEUR = {
+  anthropic: ANTHROPIC_API_KEY,
+  mistral: MISTRAL_API_KEY,
+  gemini: GEMINI_API_KEY,
+  ilaas: ILAAS_API_KEY,
+};
 const MODELES_PAR_DEFAUT = {
   anthropic: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
   mistral: process.env.MISTRAL_MODEL || "mistral-medium-latest",
   gemini: process.env.GEMINI_MODEL || "gemini-flash-lite-latest",
+  ilaas: process.env.ILAAS_MODEL || "",
 };
 
 const API_KEY = CLES_PAR_FOURNISSEUR[IA_PROVIDER] || "";
@@ -340,7 +355,7 @@ app.post("/api/generer-latex-ia", upload.single("cours"), async (req, res) => {
     if (!API_KEY) {
       return res.status(400).json({
         erreur:
-          "Aucune cle API configuree dans .env (ANTHROPIC_API_KEY, MISTRAL_API_KEY ou GEMINI_API_KEY) : cette generation necessite une cle API.",
+          "Aucune cle API configuree dans .env (ANTHROPIC_API_KEY, MISTRAL_API_KEY, GEMINI_API_KEY ou ILAAS_API_KEY) : cette generation necessite une cle API.",
       });
     }
 
@@ -397,7 +412,7 @@ app.listen(PORT, () => {
   console.log(`Application accessibilite cours -> http://localhost:${PORT}`);
   if (!API_KEY) {
     console.log(
-      "Aucune cle API definie (ANTHROPIC_API_KEY, MISTRAL_API_KEY ou GEMINI_API_KEY) : les descriptions IA seront vides (saisie manuelle)."
+      "Aucune cle API definie (ANTHROPIC_API_KEY, MISTRAL_API_KEY, GEMINI_API_KEY ou ILAAS_API_KEY) : les descriptions IA seront vides (saisie manuelle)."
     );
   } else {
     console.log(`Fournisseur IA actif : ${IA_PROVIDER} (modele ${MODEL}).`);
