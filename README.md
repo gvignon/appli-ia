@@ -60,7 +60,7 @@ Ce mode reproduit ce qui a été fait manuellement pour valider l'approche sur u
 - Un seul appel API, pas d'étape de relecture avant génération (donc **pas de garde-fou humain avant la première version** — à relire après coup, surtout les formules).
 - **Nécessite obligatoirement une clé API** : contrairement au mode principal, il n'y a pas de repli "saisie manuelle" possible ici, puisque la génération EST l'appel IA.
 - Aucune image n'est jointe au `.tex` produit (`\includegraphics` volontairement exclu par consigne) : uniquement du texte et des descriptions.
-- **Limite de taille** : un seul appel signifie un seul budget de tokens (entrée et sortie), et pour Mistral un plafond dur de **8 images par requête** (voir plus haut). Fonctionne bien pour un support de taille modeste ; un cours avec beaucoup de schémas dépassera les limites -- non géré pour l'instant (pas de découpage en plusieurs appels).
+- **Découpage des cours longs** : le cours est envoyé par paquets (10 pages et 8 images au plus par appel, cf. `decouperEnPaquets` dans `lib/generateLatexAI.js`), rédigés l'un après l'autre puis assemblés -- ce qui évite une réponse coupée sur un long cours et respecte le plafond de 8 images par requête de Mistral/ILaaS.
 - **Testé avec un vrai appel Mistral** (`mistral-medium-latest`) sur un cas réduit : la restructuration du texte fonctionne bien, mais **les descriptions de schémas ont été omises** dans ce test -- comportement à surveiller, voir le retour d'expérience Mistral plus haut. Non testé avec un vrai appel Anthropic (pas de crédit disponible au moment de l'écriture).
 
 ## Compilation du PDF
@@ -79,8 +79,9 @@ C'est une heuristique volontairement généreuse : certaines pages sans vrai sch
 
 ## Autres limites connues
 
-- **Ordre de lecture PDF** : un PDF ne garantit pas d'ordre entre texte et images sur une page ; le texte de la page est présenté en un seul bloc, suivi des schémas qu'elle contient.
-- **Images décoratives** : logos, puces ou pages rasterisées à tort (voir ci-dessus) peuvent apparaître comme des "schémas" ; supprimez leur bloc ou videz leur description dans l'étape de relecture si besoin.
+- **Ordre de lecture PDF** : un PDF ne garantit pas d'ordre entre texte et images sur une page ; le texte de la page (titre détecté par la taille de police, paragraphes, listes à puces) est suivi des schémas qu'elle contient. Les en-têtes/pieds de page répétés et les numéros de page sont retirés.
+- **Images décoratives** : une image identique présente dans au moins 3 sections (logo, bandeau) est retirée automatiquement. Les autres images décoratives ou pages rasterisées à tort (voir ci-dessus) peuvent encore apparaître comme des "schémas" ; supprimez leur bloc ou videz leur description dans l'étape de relecture si besoin.
+- **Formules** : dans le mode principal, une formule extraite d'un PDF perd sa mise en forme (une fraction devient du texte à plat). Pour de vraies formules LaTeX, utiliser le mode génération IA directe.
 - **Volume** : un PDF long et graphique (ex. 110 pages) peut déclencher des dizaines d'appels IA vision — vérifiez le temps/coût attendu avant de lancer l'analyse sur un très gros document.
 - Les sessions (fichiers extraits, images, `.tex`/`.html` générés) sont stockées dans `output/<id-session>/` et ne sont pas nettoyées automatiquement — à vider périodiquement.
 
@@ -96,7 +97,8 @@ accessibilite-app/
     describeImages.js    appels à l'API Claude (vision) pour décrire les schémas
     buildLatex.js          génération du document .tex (mode principal, avec relecture)
     buildHtml.js            génération de la page .html accessible autonome
-    generateLatexAI.js       génération IA directe du .tex (mode ia.html, un seul appel holistique)
+    structure.js             listes à puces et hiérarchie des titres, communes au .tex et au .html
+    generateLatexAI.js       génération IA directe du .tex (mode ia.html, par paquets de pages)
   public/               interface de dépôt / relecture / téléchargement
     index.html/app.js        mode principal (relecture des descriptions)
     ia.html/ia.js             mode génération IA directe

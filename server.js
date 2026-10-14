@@ -131,12 +131,36 @@ function normalizeDocx(data, sourceTitle) {
 }
 
 function normalizePdf(data, sourceTitle) {
-  const sections = data.pages.map((page) => ({
-    heading: `Page ${page.index}`,
-    paragraphs: page.text ? [page.text] : [],
-    images: page.images,
-  }));
+  const sections = [];
+  for (const page of data.pages) {
+    const prec = sections[sections.length - 1];
+    // Page sans titre propre : suite de la section precedente.
+    if (prec && (!page.heading || page.heading === prec.heading)) {
+      prec.paragraphs.push(...page.paragraphs);
+      prec.images.push(...page.images);
+      continue;
+    }
+    sections.push({
+      heading: page.heading || (sections.length === 0 ? sourceTitle : `Page ${page.index}`),
+      paragraphs: [...page.paragraphs],
+      images: [...page.images],
+    });
+  }
   return { title: sourceTitle, sections };
+}
+
+// Une image identique presente dans au moins 3 sections (logo, bandeau,
+// filigrane) est decorative : on la retire partout, sinon elle est decrite
+// a chaque page et noie les vrais schemas.
+function retirerImagesDecoratives(normalized) {
+  const empreinte = (img) => crypto.createHash("md5").update(img.buffer).digest("hex");
+  const compte = new Map();
+  for (const s of normalized.sections) {
+    for (const h of new Set(s.images.map(empreinte))) compte.set(h, (compte.get(h) || 0) + 1);
+  }
+  for (const s of normalized.sections) {
+    s.images = s.images.filter((img) => compte.get(empreinte(img)) < 3);
+  }
 }
 
 // Extraction + normalisation commune aux deux modes de generation
@@ -147,6 +171,8 @@ async function extraireEtNormaliser(buffer, ext, sourceTitle) {
   else if (ext === ".docx") normalized = normalizeDocx(extractDocx(buffer), sourceTitle);
   else if (ext === ".pdf") normalized = normalizePdf(await extractPdf(buffer), sourceTitle);
   else return null;
+
+  retirerImagesDecoratives(normalized);
 
   // Neutralise les variables mathematiques Unicode stylisees (𝑎, 𝔹, 𝜆...)
   // que peu de polices affichent correctement (carres a l'ecran/au PDF) --
@@ -342,7 +368,7 @@ app.post("/api/generer", async (req, res) => {
 });
 
 // ---------------------------------------------------------------------
-// POST /api/generer-latex-ia : upload -> un seul appel IA qui redige le
+// POST /api/generer-latex-ia : upload -> appels IA (par paquets de pages) qui redigent le
 // document LaTeX complet (structure academique + formules + descriptions
 // de schemas), sur le modele du fichier exemple valide manuellement.
 // Necessite ANTHROPIC_API_KEY : pas de mode degrade ici, la generation
