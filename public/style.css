@@ -76,6 +76,35 @@ a:focus-visible {
 }
 
 .note { color: var(--gris); font-size: 0.95rem; }
+
+.choix-mode ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+.choix-mode li { margin-bottom: 0.3rem; }
+.modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 700px) {
+  .modes { grid-template-columns: 1fr; }
+}
+.mode {
+  border: 1px solid var(--gris-clair);
+  border-radius: 6px;
+  padding: 1rem;
+  background: var(--fond);
+}
+.mode h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.mode p { margin: 0.5rem 0; }
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--noir);
+  color: white;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  vertical-align: middle;
+}
+.choix-mode a, .lien-mode { color: var(--rouge); font-weight: 600; }
 .erreur { color: var(--rouge); font-weight: 600; }
 
 .section-cours {

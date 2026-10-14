@@ -15,6 +15,16 @@
 
 <main id="main">
 
+  <section class="etape choix-mode" aria-labelledby="titre-conseil">
+    <h2 id="titre-conseil">À savoir avant de lancer</h2>
+    <ul>
+      <li><strong>Mode conseillé</strong> pour les cours avec des formules mathématiques, ou pour obtenir un document réorganisé comme un polycopié.</li>
+      <li>Pour un cours surtout textuel, le <a href="index.html">mode avec relecture</a> garde le texte d'origine et vous laisse corriger chaque description de schéma.</li>
+      <li>L'IA reformule le cours : <strong>relisez le résultat</strong> avant de le transmettre, en particulier les formules (celles qui sont douteuses sont signalées « formule à vérifier »).</li>
+      <li>Comptez environ 3 minutes pour 60 diapositives : laissez la page ouverte.</li>
+    </ul>
+  </section>
+
   <section id="etape-upload" class="etape">
     <h2>1. Déposer le cours</h2>
     <form id="form-upload">
@@ -27,7 +37,7 @@
 
   <section id="etape-chargement" class="etape" hidden aria-live="polite">
     <h2>Génération en cours…</h2>
-    <p>L'IA lit l'intégralité du cours (texte et schémas) et rédige le document LaTeX en une seule fois. Pour un cours de plusieurs dizaines de pages, cela peut prendre plusieurs minutes.</p>
+    <p>L'IA lit le cours (texte et schémas) par morceaux d'une dizaine de pages et rédige le document LaTeX au fur et à mesure. Pour un cours de plusieurs dizaines de pages, cela peut prendre plusieurs minutes : laissez la page ouverte.</p>
     <div class="spinner" aria-hidden="true"></div>
   </section>
 

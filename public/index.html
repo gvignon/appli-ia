@@ -14,6 +14,32 @@
 
 <main id="main">
 
+  <section class="etape choix-mode" aria-labelledby="titre-choix-mode">
+    <h2 id="titre-choix-mode">Quel mode choisir ?</h2>
+    <div class="modes">
+      <div class="mode">
+        <h3>Mode avec relecture <span class="badge">cette page</span></h3>
+        <p><strong>Pour :</strong> les cours surtout textuels, avec des schémas ou graphiques, sans formules mathématiques.</p>
+        <ul>
+          <li>Le texte du cours est conservé tel quel, rien n'est reformulé.</li>
+          <li>Vous relisez et corrigez chaque description de schéma avant de générer le document.</li>
+          <li>Produit un fichier LaTeX <em>et</em> une page HTML lisible directement au lecteur d'écran.</li>
+        </ul>
+        <p class="note">Limite : une formule extraite d'un PDF reste écrite à plat (une fraction devient du texte en ligne).</p>
+      </div>
+      <div class="mode">
+        <h3>Génération IA directe</h3>
+        <p><strong>Pour :</strong> les cours avec des formules mathématiques (économie, sciences, ingénierie), ou quand vous voulez un document réorganisé comme un polycopié.</p>
+        <ul>
+          <li>L'IA réécrit le cours en chapitres et sous-parties, avec de vraies formules LaTeX.</li>
+          <li>Plus long : environ 3 minutes pour 60 diapositives.</li>
+          <li>Pas de relecture avant génération : relisez le résultat, l'IA reformule le texte et peut se tromper (les formules douteuses sont signalées « formule à vérifier »).</li>
+        </ul>
+        <p><a href="ia.html" class="lien-mode">Utiliser la génération IA directe →</a></p>
+      </div>
+    </div>
+  </section>
+
   <section id="etape-upload" class="etape">
     <h2>1. Déposer le cours</h2>
     <form id="form-upload">
